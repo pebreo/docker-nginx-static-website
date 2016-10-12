@@ -1,0 +1,94 @@
+# log_collector:
+#   container_name: logcont
+#   restart: always
+#   build: ./log_collector
+#   volumes:
+#     - /tmp/syslogdev:/dev
+#     - /var/log
+#   command: rsyslogd -n
+
+loggly:
+  container_name: loggly-docker
+  environment:
+    TOKEN: 851e3b39-17ca-48b6-b7f1-edd1673b17a1
+    TAG: Docker
+  tty: true 
+  image: sendgridlabs/loggly-docker
+  ports:
+   - "514:514/udp"
+
+web:
+  container_name: webcont
+  restart: always
+  build: ./web
+  expose:
+    - "8000"
+  links:
+    # - postgres:postgres
+    - redis:redis
+  volumes:
+    # - ./web:/usr/src/app
+    - /tmp/syslogdev/log:/dev/log
+    - /static
+  env_file: .env
+  ports:
+    - "5432:5432"
+  command: /bin/bash run_gunicorn.sh
+  log_driver: "syslog"
+
+nginx:
+  container_name: nginxcont
+  restart: always
+  build: ./nginx/
+  ports:
+    - "80:80"
+  volumes:
+    - /www/static
+  volumes_from:
+    - web
+  links:
+    - web:web
+  log_driver: "syslog"
+
+redis:
+  restart: always
+  image: redis:latest
+  ports:
+    - "6379:6379"
+
+# postgres:
+#   container_name: postgrescont
+#   restart: always
+#   image: postgres:latest
+#   volumes:
+#     - /tmp/postgrescont:/tmp
+#   # volumes_from:
+#   #   - data
+#   ports:
+#     - "5434:5432"
+
+
+
+# data:
+#   restart: always
+#   image: postgres:latest
+#   volumes:
+#     - /var/lib/postgresql
+  # command: "true"
+
+# TODO: add celery services for beat and worker
+# celeryworker:
+#   build: ./celery
+#   env_file: .env
+#   links:
+#    - postgres
+#    - redis
+#   command: celery -A {{cookiecutter.repo_name}}.taskapp worker -l INFO
+
+# celerybeat:
+#   build: ./celery
+#   env_file: .env
+#   links:
+#     - postgres
+#     - redis
+#   command: celery -A {{cookiecutter.repo_name}}.taskapp beat -l INFO

@@ -1,0 +1,28 @@
+# log_collector:
+#   container_name: logcont
+
+web:
+  container_name: webcont
+  restart: always
+  build: ./web
+  volumes:
+    - /www
+    - /static
+
+nginx:
+  container_name: nginxcont
+  restart: always
+  build: ./nginx/
+  ports:
+    - "80:80"
+  volumes:
+    - /www/static
+  volumes_from:
+    - web
+  links:
+    - web:web
+
+
+
+
+

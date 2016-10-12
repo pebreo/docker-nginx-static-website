@@ -1,0 +1,12 @@
+__pycache__/
+.DS_Store
+node_modules/
+.idea/
+*.rdb
+*.sqlite3
+*.db
+*.pid
+*.tmp
+*.pyc
+django_social_app/config.py
+DS_Store/
